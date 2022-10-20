@@ -32,3 +32,13 @@ async def create_todo(todo: TodoItemBase):
   todo = {'id': str(uuid4()), **todo.dict()}
   todos.append(todo)
   return todo
+
+
+@app.put('/todo/{todo_id}')
+async def update_todo(todo_id: str, todo: TodoItemBase):
+  for idx, item in enumerate(todos):
+    print(item)
+    if item['id'] == todo_id:
+      todo = item | todo.dict()
+      todos[idx] = todo
+  return todo
