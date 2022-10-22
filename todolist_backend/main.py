@@ -42,3 +42,13 @@ async def update_todo(todo_id: str, todo: TodoItemBase):
       todo = item | todo.dict()
       todos[idx] = todo
   return todo
+
+
+@app.delete('/todo/{todo_id}')
+async def delete_todo(todo_id: str):
+  for idx, item in enumerate(todos):
+    if item['id'] == todo_id:
+      del todos[idx]
+      return True
+
+  return False
