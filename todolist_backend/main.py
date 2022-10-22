@@ -1,4 +1,3 @@
-from typing import List
 from uuid import uuid4
 from fastapi import FastAPI
 
@@ -6,7 +5,7 @@ from todolist_backend.model import TodoItemBase, TodoItem
 
 app = FastAPI()
 
-todos: List[TodoItem] = []
+todos: dict[str, TodoItem] = {}
 
 
 @app.get("/")
@@ -17,38 +16,34 @@ async def root():
 @app.get("/todo")
 async def get_todos(done: bool | None = None):
   if done is not None:
-    return list(filter(lambda item: item['done'] == done, todos))
-  return todos
+    return list(filter(lambda item: item['done'] == done, list(todos.values())))
+  return list(todos.values())
 
 
 @app.get('/todo/{todo_id}')
 async def get_todo(todo_id: str):
-  print(todos, todo_id)
-  return next((item for item in todos if item['id'] == todo_id), None)
+  return todos.get(todo_id, None)
 
 
 @app.post('/todo')
 async def create_todo(todo: TodoItemBase):
   todo = {'id': str(uuid4()), **todo.dict()}
-  todos.append(todo)
+  todos[todo['id']] = todo
   return todo
 
 
 @app.put('/todo/{todo_id}')
 async def update_todo(todo_id: str, todo: TodoItemBase):
-  for idx, item in enumerate(todos):
-    print(item)
-    if item['id'] == todo_id:
-      todo = item | todo.dict()
-      todos[idx] = todo
-  return todo
+  if todo_id in todos:
+    todo = todos[todo_id] | todo.dict()
+    todos[todo_id] = todo
+    return todo
+  return None
 
 
 @app.delete('/todo/{todo_id}')
 async def delete_todo(todo_id: str):
-  for idx, item in enumerate(todos):
-    if item['id'] == todo_id:
-      del todos[idx]
-      return True
-
+  if todo_id in todos:
+    del todos[todo_id]
+    return True
   return False
