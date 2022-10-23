@@ -1,4 +1,3 @@
-from uuid import uuid4
 from fastapi import FastAPI, Depends
 from sqlalchemy.orm import Session
 
@@ -33,3 +32,26 @@ async def create_todo(todo: TodoItem, db: Session = Depends(get_db)):
   db.commit()
   db.refresh(todo)
   return todo
+
+
+@app.put('/todo/{todo_id}')
+async def update_todo(todo_id: str,
+                      todo: TodoItem,
+                      db: Session = Depends(get_db)):
+  item = db.query(Todo).filter(Todo.id == todo_id)
+  if item:
+    item.update(todo.dict())
+    db.commit()
+    return item.first()
+  return None
+
+
+@app.delete('/todo/{todo_id}')
+async def delete_todo(todo_id: str, db: Session = Depends(get_db)):
+  todo = db.get(Todo, todo_id)
+  if todo:
+    db.delete(todo)
+    db.commit()
+    return True
+
+  return False
